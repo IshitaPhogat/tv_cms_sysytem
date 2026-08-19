@@ -190,5 +190,7 @@ if not has_artwork or not has_duration:
 
 ## Screen Recording
 Here I add a drive link which contains the screen recording for the project
-
+```text
+https://www.loom.com/share/3d138b0722d44e7b8afb4cfa9ff6c4c8
+```
 
