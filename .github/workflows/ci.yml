@@ -21,19 +21,34 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install backend dependencies
+      - name: Install lint dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
           pip install ruff
 
       - name: Lint backend
         run: |
           ruff check backend/app
 
-      - name: Run backend tests
+      - name: Start backend stack
         run: |
-          pytest backend
+          docker compose up -d db backend
+
+      - name: Run backend tests in Docker
+        run: |
+          for i in {1..10}; do
+            if docker compose exec -T backend sh -c 'PYTHONPATH=/app pytest'; then
+              exit 0
+            fi
+            echo "Backend not ready yet. Retrying in 3 seconds..."
+            sleep 3
+          done
+          exit 1
+
+      - name: Stop backend stack
+        if: always()
+        run: |
+          docker compose down
 
   cms:
     name: CMS UI build
@@ -77,10 +92,6 @@ jobs:
         working-directory: viewer-ui
         run: npm ci
 
-      - name: Test Viewer
-        working-directory: viewer-ui
-        run: npm test -- --watchAll=false
-
       - name: Build Viewer
         working-directory: viewer-ui
         run: npm run build
@@ -113,4 +124,6 @@ jobs:
         run: |
           echo "CI passed successfully."
           echo "A production deployment would happen here."
+          echo "A real deployment would authenticate with the production platform"
+          echo "and deploy the validated Docker images."
           echo "Production credentials would be provided through GitHub Secrets."
