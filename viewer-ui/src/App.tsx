@@ -303,10 +303,19 @@ export default function App() {
 
             {/* Show detail */}
             {selectedShow && (
-                <ShowDetailModal
-                    show={selectedShow}
-                    onClose={() => setSelectedShow(null)}
-                />
+                <>
+                    {console.log(
+                        "SELECTED SHOW:",
+                        selectedShow.show_title,
+                        "EPISODES:",
+                        selectedShow.episodes
+                    )}
+
+                    <ShowDetailModal
+                        show={selectedShow}
+                        onClose={() => setSelectedShow(null)}
+                    />
+                </>
             )}
         </div>
     );

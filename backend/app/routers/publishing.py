@@ -13,6 +13,34 @@ from ..models import PublishRunModel, ShowModel
 
 router = APIRouter(prefix="/admin", tags=["Publishing"])
 
+
+
+@router.get("/validation-report")
+def get_validation_report(
+    admin_role: str = Depends(require_admin),
+):
+    report_path = os.getenv(
+        "VALIDATION_REPORT_PATH",
+        "storage_data/validation_report.json",
+    )
+
+    if not os.path.exists(report_path):
+        return {
+            "message": "No validation failures logged.",
+            "errors": [],
+        }
+
+    try:
+        with open(report_path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="Validation report could not be read.",
+        ) from exc
+
+    
+
 @router.post("/catalog/publish")
 def publish_catalog(admin_role: str = Depends(require_admin), db: Session = Depends(get_db)):
     """

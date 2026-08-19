@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
 from .routers import (  # Import viewer_auth
     artwork,
+    content,
     publishing,
     seeding,
     viewer_auth,
@@ -33,6 +34,7 @@ app.add_middleware(
 
 # Include our routers
 app.include_router(artwork.router)
+app.include_router(content.router)
 app.include_router(seeding.router)
 app.include_router(publishing.router)
 app.include_router(viewer_auth.router)  #  Register the viewer auth routes (/viewer/register & /viewer/login)

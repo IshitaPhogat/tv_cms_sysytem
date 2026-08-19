@@ -54,7 +54,7 @@ Can perform CRUD operations on the data but can not publish data to catalog.json
 #### Admin
 Can perform CRUS operations on the data and can publish data to catalog.json file.
 
-The roles distinction is also done in fasAPI and in ground level POSTGRES, preventing manual api calls and role overwrites.
+The roles distinction is also done in fasAPI preventing manual api calls and role overwrites.
 
 ## How to Run
 ### Prerequisites
@@ -164,6 +164,16 @@ AI was used for generating code snippets for better time mangement and for debug
 I spent time learnign and understadning the complete process by myself since CMS and docker both were a new technology for me.
 I have added photos of my own notes while I was trying to understand the problem statement as a proof of work in the folder Proof_of_Work. 
 
+### 6. Condition to accept Ep as Draft
+```bash
+has_artwork = len(ep.artworks) > 0
+has_duration = ep.duration_seconds is not None and ep.duration_seconds > 0
+
+if not has_artwork or not has_duration:
+    # blocked
+    continue
+```
+
 ## Time Spent
 ```text
 | Part                    | Approx. Time |
@@ -173,9 +183,9 @@ I have added photos of my own notes while I was trying to understand the problem
 | CMS UI                  | 2 hours      |
 | Viewer UI               | 2 hours      |
 | Docker / infrastructure | 1 hour       |
-| Debugging & integration | 3 hours      |
+| Debugging & integration | 6 hours      |
 | README / documentation  | 20 minutes   |
-| Total                   | 17.20 hours  |
+| Total                   | 20.20 hours  |
 ```
 
 ## Screen Recording

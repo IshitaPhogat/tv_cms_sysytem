@@ -45,6 +45,18 @@ async def seed_and_validate_database(db: Session = Depends(get_db)):
 
         error_reasons = []
 
+        # 0. If this episode already exists in the database,
+        # silently skip it. It is not a validation failure.
+        existing_episode = (
+            db.query(EpisodeModel)
+            .filter(EpisodeModel.episode_id == ep_id)
+            .first()
+        )
+
+        if existing_episode:
+            continue
+
+
         # 1. Check Episode ID Duplicates
         if ep_id in seen_episode_ids:
             error_reasons.append(f"Duplicate episode ID '{ep_id}' found in dataset.")
@@ -59,6 +71,24 @@ async def seed_and_validate_database(db: Session = Depends(get_db)):
             else:
                 seen_content_group_languages.add(pair)
 
+        # 3. Check (content_group, language) against the database
+        if content_group and lang:
+            existing_pair = (
+                db.query(EpisodeModel)
+                .filter(
+                    EpisodeModel.content_group == content_group,
+                    EpisodeModel.language == lang,
+                )
+                .first()
+            )
+
+            if existing_pair:
+                error_reasons.append(
+                    f"Duplicate language variant: Combination of "
+                    f"content_group '{content_group}' and language '{lang}' "
+                    f"already exists in database as episode "
+                    f"'{existing_pair.episode_id}'."
+                )
 
         # If any validation rules failed, log it for the editor validation report
         if error_reasons:

@@ -161,38 +161,45 @@ export default function ShowDetailModal({
                     {seasons.length > 0 && (
                         <div
                             style={{
-                                display: 'flex',
-                                gap: '10px',
                                 margin: '20px 0',
-                                borderBottom: '1px solid #333',
-                                paddingBottom: '10px',
-                                flexWrap: 'wrap'
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px'
                             }}
                         >
-                            {seasons.map(season => (
-                                <button
-                                    key={season.seasonNumber}
-                                    onClick={() =>
-                                        setSelectedSeason(
-                                            season.seasonNumber
-                                        )
-                                    }
-                                    style={{
-                                        padding: '8px 16px',
-                                        background:
-                                            selectedSeason ===
-                                            season.seasonNumber
-                                                ? '#e50914'
-                                                : '#333',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Season {season.seasonNumber}
-                                </button>
-                            ))}
+                            <label
+                                htmlFor="season-select"
+                                style={{
+                                    fontWeight: 'bold',
+                                    color: '#fff'
+                                }}
+                            >
+                                Season
+                            </label>
+
+                            <select
+                                id="season-select"
+                                value={selectedSeason}
+                                onChange={e => setSelectedSeason(Number(e.target.value))}
+                                style={{
+                                    background: '#333',
+                                    color: '#fff',
+                                    border: '1px solid #555',
+                                    borderRadius: '4px',
+                                    padding: '8px 12px',
+                                    fontSize: '14px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {seasons.map(season => (
+                                    <option
+                                        key={season.seasonNumber}
+                                        value={season.seasonNumber}
+                                    >
+                                        Season {season.seasonNumber}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     )}
 

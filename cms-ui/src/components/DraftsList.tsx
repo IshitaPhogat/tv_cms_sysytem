@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { fetchSearchCatalog, triggerSeedData } from '../services/api';
+import { fetchDrafts, triggerSeedData } from '../services/api';
 import ArtworkUploader from './ArtworkUploader';
 import { Episode } from '../../types';
 
 export default function DraftsList() {
+
     const [episodes, setEpisodes] = useState<Episode[]>([]);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(20);
+    const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -20,8 +24,17 @@ export default function DraftsList() {
         try {
             setLoading(true);
             setError(null);
-            const data = await fetchSearchCatalog(searchQuery, undefined, languageFilter, sectionFilter);
+            const data = await fetchDrafts(
+                searchQuery,
+                sectionFilter,
+                languageFilter,
+                undefined,
+                page,
+                pageSize
+            );
+
             setEpisodes(data.results || []);
+            setTotal(data.total || 0);
         } catch (err: any) {
             setError("Failed to connect to backend server. Please check if Docker is running.");
         } finally {
@@ -30,8 +43,12 @@ export default function DraftsList() {
     };
 
     useEffect(() => {
-        loadData();
+        setPage(1);
     }, [searchQuery, sectionFilter, languageFilter]);
+
+    useEffect(() => {
+        loadData();
+    }, [searchQuery, sectionFilter, languageFilter, page]);
 
     const handleSeed = async () => {
         try {
@@ -46,27 +63,27 @@ export default function DraftsList() {
     return (
         <div style={{ padding: '20px' }}>
             <h2>Content Management & Drafts</h2>
-            
+
             {/* Toolbar: Search, Filters, and Seed Button */}
             <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                <input 
-                    type="text" 
-                    placeholder="Search shows, episodes, categories..." 
-                    value={searchQuery} 
+                <input
+                    type="text"
+                    placeholder="Search shows, episodes, categories..."
+                    value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     style={{ padding: '8px', width: '250px' }}
                 />
-                <input 
-                    type="text" 
-                    placeholder="Filter by Section..." 
-                    value={sectionFilter} 
+                <input
+                    type="text"
+                    placeholder="Filter by Section..."
+                    value={sectionFilter}
                     onChange={e => setSectionFilter(e.target.value)}
                     style={{ padding: '8px', width: '180px' }}
                 />
-                <input 
-                    type="text" 
-                    placeholder="Filter by Language..." 
-                    value={languageFilter} 
+                <input
+                    type="text"
+                    placeholder="Filter by Language..."
+                    value={languageFilter}
                     onChange={e => setLanguageFilter(e.target.value)}
                     style={{ padding: '8px', width: '180px' }}
                 />
@@ -79,7 +96,7 @@ export default function DraftsList() {
 
             {/* HANDLED STATES */}
             {loading && <p>Loading catalog items...</p>}
-            
+
             {error && <p style={{ color: 'red', fontWeight: 'bold' }}>Error: {error}</p>}
 
             {!loading && !error && episodes.length === 0 && (
@@ -123,6 +140,62 @@ export default function DraftsList() {
                 </table>
             )}
 
+
+            {!loading && !error && episodes.length > 0 && (
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                    ...
+                </table>
+            )}
+
+            {total > pageSize && (
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '15px',
+                        marginTop: '20px'
+                    }}
+                >
+                    <button
+                        onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                        disabled={page === 1}
+                        style={{
+                            padding: '8px 14px',
+                            cursor: page === 1 ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        ← Previous
+                    </button>
+
+                    <span>
+                        Page {page} of {Math.ceil(total / pageSize)}
+                        {' '}({total} entries)
+                    </span>
+
+                    <button
+                        onClick={() =>
+                            setPage(prev =>
+                                Math.min(
+                                    Math.ceil(total / pageSize),
+                                    prev + 1
+                                )
+                            )
+                        }
+                        disabled={page >= Math.ceil(total / pageSize)}
+                        style={{
+                            padding: '8px 14px',
+                            cursor:
+                                page >= Math.ceil(total / pageSize)
+                                    ? 'not-allowed'
+                                    : 'pointer'
+                        }}
+                    >
+                        Next →
+                    </button>
+                </div>
+            )}
+
             {/* Artwork Management Modal / Drawer */}
             {/* Artwork Management Modal */}
             {selectedEpisodeId && (
@@ -140,78 +213,78 @@ export default function DraftsList() {
                 >
                     <div
                         style={{
-                        background: '#fff',
-                        width: '90%',
-                        maxWidth: '1100px',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
-                        borderRadius: '10px',
-                        padding: '25px',
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-                    }}
-                >
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: '20px',
+                            background: '#fff',
+                            width: '90%',
+                            maxWidth: '1100px',
+                            maxHeight: '90vh',
+                            overflowY: 'auto',
+                            borderRadius: '10px',
+                            padding: '25px',
+                            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
                         }}
                     >
-                        <div>
-                            <h3 style={{ margin: 0 }}>
-                                Manage Artwork
-                            </h3>
-
-                            <p
-                                style={{
-                                    margin: '5px 0 0',
-                                    color: '#666',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                Episode ID: <strong>{selectedEpisodeId}</strong>
-                            </p>
-                        </div>
-
-                        <button
-                            onClick={() => setSelectedEpisodeId(null)}
+                        <div
                             style={{
-                                border: 'none',
-                                background: '#eee',
-                                padding: '8px 12px',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                fontSize: '16px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '20px',
                             }}
                         >
-                            ✕
-                        </button>
-                    </div>
+                            <div>
+                                <h3 style={{ margin: 0 }}>
+                                    Manage Artwork
+                                </h3>
 
-                    <ArtworkUploader episodeId={selectedEpisodeId} />
+                                <p
+                                    style={{
+                                        margin: '5px 0 0',
+                                        color: '#666',
+                                        fontSize: '14px',
+                                    }}
+                                >
+                                    Episode ID: <strong>{selectedEpisodeId}</strong>
+                                </p>
+                            </div>
 
-                    <div
-                        style={{
-                            marginTop: '20px',
-                            padding: '12px',
-                            background: '#f8f9fa',
-                            borderRadius: '6px',
-                            fontSize: '13px',
-                            color: '#555',
-                        }}
-                    >
-                        <strong>Publishing requirement:</strong>
+                            <button
+                                onClick={() => setSelectedEpisodeId(null)}
+                                style={{
+                                    border: 'none',
+                                    background: '#eee',
+                                    padding: '8px 12px',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                    fontSize: '16px',
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
 
-                        <ul style={{ marginBottom: 0 }}>
-                            <li>Episode must have a duration.</li>
-                            <li>Episode must have at least one valid artwork.</li>
-                            <li>Poster, banner, and thumbnail are optional individually.</li>
-                        </ul>
+                        <ArtworkUploader episodeId={selectedEpisodeId} />
+
+                        <div
+                            style={{
+                                marginTop: '20px',
+                                padding: '12px',
+                                background: '#f8f9fa',
+                                borderRadius: '6px',
+                                fontSize: '13px',
+                                color: '#555',
+                            }}
+                        >
+                            <strong>Publishing requirement:</strong>
+
+                            <ul style={{ marginBottom: 0 }}>
+                                <li>Episode must have a duration.</li>
+                                <li>Episode must have at least one valid artwork.</li>
+                                <li>Poster, banner, and thumbnail are optional individually.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
-        )}
+            )}
         </div>
     );
 }

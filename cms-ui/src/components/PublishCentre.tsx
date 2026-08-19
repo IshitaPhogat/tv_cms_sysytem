@@ -63,11 +63,14 @@ export default function PublishCenter({ role }: { role: string }) {
                 </div>
             )}
 
-            <div style={{ marginTop: '20px' }}>
-                <h3>Unified Validation Report</h3>
-                <pre style={{ background: '#f4f4f4', padding: '10px', borderRadius: '5px' }}>
-                    {JSON.stringify(report, null, 2)}
-                </pre>
+                <div style={{ marginTop: '20px' }}>
+                    <h3>Unified Validation Report</h3>
+                        <pre style={{ background: '#f4f4f4', padding: '10px', borderRadius: '5px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word',   maxWidth: '100%', boxSizing: 'border-box', overflowX: 'auto',
+
+                        }}
+                    >
+                        {JSON.stringify(report, null, 2)}
+                    </pre>
             </div>
         </div>
     );
