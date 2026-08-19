@@ -1,0 +1,116 @@
+name: Peblo TV CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install ruff
+
+      - name: Lint backend
+        run: |
+          ruff check backend/app
+
+      - name: Run backend tests
+        run: |
+          pytest backend
+
+  cms:
+    name: CMS UI build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: cms-ui/package-lock.json
+
+      - name: Install CMS dependencies
+        working-directory: cms-ui
+        run: npm ci
+
+      - name: Build CMS
+        working-directory: cms-ui
+        run: npm run build
+
+  viewer:
+    name: Viewer UI build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: viewer-ui/package-lock.json
+
+      - name: Install Viewer dependencies
+        working-directory: viewer-ui
+        run: npm ci
+
+      - name: Test Viewer
+        working-directory: viewer-ui
+        run: npm test -- --watchAll=false
+
+      - name: Build Viewer
+        working-directory: viewer-ui
+        run: npm run build
+
+  docker:
+    name: Build Docker images
+    needs:
+      - backend
+      - cms
+      - viewer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker Compose images
+        run: |
+          docker compose build
+
+  deploy:
+    name: Deployment step
+    needs:
+      - docker
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deployment placeholder
+        run: |
+          echo "CI passed successfully."
+          echo "A production deployment would happen here."
+          echo "Production credentials would be provided through GitHub Secrets."
