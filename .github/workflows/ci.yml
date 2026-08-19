@@ -30,20 +30,43 @@ jobs:
         run: |
           ruff check backend/app
 
+      - name: Create .env file
+        run: |
+          echo "POSTGRES_USER=postgres" >> .env
+          echo "POSTGRES_PASSWORD=postgres" >> .env
+          echo "POSTGRES_DB=peblo" >> .env
+
       - name: Start backend stack
         run: |
           docker compose up -d db backend
 
-      - name: Run backend tests in Docker
+      - name: Check Docker services
         run: |
-          for i in {1..10}; do
-            if docker compose exec -T backend sh -c 'PYTHONPATH=/app pytest'; then
+          docker compose ps
+
+      - name: Check database DNS
+        run: |
+          docker compose exec -T backend getent hosts db
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..20}; do
+            if docker compose exec -T db pg_isready -U postgres -d peblo; then
+              echo "PostgreSQL is ready."
               exit 0
             fi
-            echo "Backend not ready yet. Retrying in 3 seconds..."
-            sleep 3
+
+            echo "PostgreSQL is not ready yet. Retrying..."
+            sleep 2
           done
+
+          echo "PostgreSQL failed to become ready."
+          docker compose logs db
           exit 1
+
+      - name: Run backend tests in Docker
+        run: |
+          docker compose exec -T backend sh -c 'PYTHONPATH=/app pytest'
 
       - name: Stop backend stack
         if: always()
@@ -123,7 +146,6 @@ jobs:
       - name: Deployment placeholder
         run: |
           echo "CI passed successfully."
-          echo "A production deployment would happen here."
           echo "A real deployment would authenticate with the production platform"
           echo "and deploy the validated Docker images."
           echo "Production credentials would be provided through GitHub Secrets."
